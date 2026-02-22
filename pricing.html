@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Precios</title>
+
+<style>
+body {
+  font-family: Arial;
+  padding: 20px;
+  background: #f4f4f4;
+}
+
+h2 {
+  text-align: center;
+}
+
+.section {
+  background: white;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 8px;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  font-size: 16px;
+}
+
+button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  font-weight: bold;
+}
+
+.total-line {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.receipt {
+  background: #fff;
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.receipt div {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
+.final {
+  font-size: 20px;
+  font-weight: bold;
+  border-top: 1px solid #ccc;
+  padding-top: 8px;
+}
+
+.warning {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.low { color: orange; }
+.danger { color: red; }
+.good { color: green; }
+
+</style>
+</head>
+<body>
+
+<h2>Calculadora de precios</h2>
+
+<div class="section">
+<h3>Tela</h3>
+<input type="number" id="pricePerUnit" placeholder="Precio por metro (en pesos)">
+<input type="number" id="metersUsed" placeholder="Metros usados (1 = 1 metro cuadrado)">
+<div class="total-line" id="fabricTotal"></div>
+</div>
+
+<div class="section">
+<h3>Horas</h3>
+<input type="number" id="hours" placeholder="Horas trabajadas">
+<input type="number" id="rate" placeholder="Precio por hora (en pesos)">
+<div class="total-line" id="laborTotal"></div>
+</div>
+
+<div class="section">
+<h3>Otros Materiales</h3>
+<input type="number" id="materials" placeholder="Costo estimado de otros materiales (hilos, pegamento, etc.)">
+</div>
+
+<div class="section">
+<h3>Beneficio</h3>
+<input type="number" id="margin" placeholder="Margen deseado de beneficio (% del costo total, también llamado markup)">
+</div>
+
+<button onclick="calculate()">Calcular Precio de Venta</button>
+
+<div class="receipt" id="receipt"></div>
+<div class="warning" id="warning"></div>
+<div class="section" id="education"></div>
+
+<script>
+function calculate() {
+
+  let pricePerUnit = parseFloat(document.getElementById("pricePerUnit").value) || 0;
+  let metersUsed = parseFloat(document.getElementById("metersUsed").value) || 0;
+  let hours = parseFloat(document.getElementById("hours").value) || 0;
+  let rate = parseFloat(document.getElementById("rate").value) || 0;
+  let materials = parseFloat(document.getElementById("materials").value) || 0;
+  let marginPercent = parseFloat(document.getElementById("margin").value) || 0;
+
+  let fabricCost = pricePerUnit * metersUsed;
+  let laborCost = hours * rate;
+  let baseCost = fabricCost + laborCost + materials;
+  let profit = baseCost * (marginPercent / 100);
+  let finalPrice = baseCost + profit;
+
+  let realMargin = 0;
+  if (finalPrice > 0) {
+    realMargin = (profit / finalPrice) * 100;
+  }
+
+  document.getElementById("fabricTotal").innerHTML =
+    "Costo Total: $" + fabricCost.toFixed(2);
+
+  document.getElementById("laborTotal").innerHTML =
+    "Costo Total: $" + laborCost.toFixed(2);
+
+  document.getElementById("receipt").innerHTML = `
+    <div><span>Tela:</span><span>$${fabricCost.toFixed(2)}</span></div>
+    <div><span>Mano de Obra:</span><span>$${laborCost.toFixed(2)}</span></div>
+    <div><span>Materiales:</span><span>$${materials.toFixed(2)}</span></div>
+    <div><span>Costo total:</span><span>$${baseCost.toFixed(2)}</span></div>
+    <div><span>Ganancia (${marginPercent}% markup):</span><span>$${profit.toFixed(2)}</span></div>
+    <div class="final"><span>Precio Final:</span><span>$${finalPrice.toFixed(2)}</span></div>
+  `;
+
+  let warning = document.getElementById("warning");
+
+  if (marginPercent === 0) {
+    warning.innerHTML = "⚠ Estás vendiendo al costo, este margen representa ganancia nula.";
+    warning.className = "warning danger";
+  } else if (marginPercent < 20) {
+    warning.innerHTML = "⚠ Markup muy bajo, considera incrementarlo.";
+    warning.className = "warning low";
+  } else {
+    warning.innerHTML = "✓ Nivel de markup aceptable.";
+    warning.className = "warning good";
+  }
+
+  document.getElementById("education").innerHTML = `
+    <strong>Entendiendo tu utilidad</strong><br><br>
+    Agregaste <strong>${marginPercent}%</strong> sobre tu costo total. A este método se le llama margen de beneficio o markup.<br><br>
+    Sin embargo, tu margen de ganancia o utilidad real — es decir, el porcentaje del precio de venta que te queda como ganancia — es:
+    <strong>${realMargin.toFixed(2)}%</strong>.<br><br>
+    Markup se calcula sobre el costo total: <strong>${profit}</strong> / <strong>${baseCost}</strong> = <strong>${marginPercent}%</strong>. <br><br>
+    Margen de utilidad se calcula sobre el precio de venta: : <strong>${profit}</strong> / <strong>${finalPrice}</strong> = <strong>${realMargin.toFixed(2)}%</strong>.
+  `;
+}
+</script>
+</body>
+</html>
