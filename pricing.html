@@ -72,17 +72,36 @@ button {
 .danger { color: red; }
 .good { color: green; }
 
+.fabric-line input {
+  width: 90%;
+  box-sizing: border-box;
+  padding: 5px;
+}
+
 </style>
 </head>
 <body>
 
-<h2>Calculadora de precios PRUEBA</h2>
+<h2>Calculadora de precios</h2>
 
 <div class="section">
 <h3>Tela</h3>
-<input type="number" id="pricePerUnit" placeholder="Precio por metro (en pesos)">
-<input type="number" id="metersUsed" placeholder="Metros usados (1 = 1 metro cuadrado)">
-<div class="total-line" id="fabricTotal"></div>
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th>Tipo de Tela</th>
+        <th>Metros</th>
+        <th>Precio / Metro</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="fabricContainer">
+    </tbody>
+  </table>
+
+  <button type="button" onclick="addFabricLine()">+ Agregar tela</button>
+
+  <div class="total-line" id="fabricTotal"></div>
 </div>
 
 <div class="section">
@@ -109,16 +128,45 @@ button {
 <div class="section" id="education"></div>
 
 <script>
+
+function addFabricLine() {
+  const container = document.getElementById("fabricContainer");
+
+  const row = document.createElement("tr");
+  row.className = "fabric-line";
+  row.innerHTML = `
+    <td><input type="text" placeholder="Tipo de Tela" class="fabric-name"></td>
+    <td><input type="number" placeholder="Metros" class="meters"></td>
+    <td><input type="number" placeholder="Precio" class="price"></td>
+    <td class="line-total">$0.00</td>
+  `;
+
+  container.appendChild(row);
+}
+
 function calculate() {
 
-  let pricePerUnit = parseFloat(document.getElementById("pricePerUnit").value) || 0;
-  let metersUsed = parseFloat(document.getElementById("metersUsed").value) || 0;
   let hours = parseFloat(document.getElementById("hours").value) || 0;
   let rate = parseFloat(document.getElementById("rate").value) || 0;
   let materials = parseFloat(document.getElementById("materials").value) || 0;
   let marginPercent = parseFloat(document.getElementById("margin").value) || 0;
 
-  let fabricCost = pricePerUnit * metersUsed;
+  // -------- FABRIC CALCULATION (MULTIPLE LINES) --------
+  let fabricCost = 0;
+  let lines = document.querySelectorAll(".fabric-line");
+
+  lines.forEach(line => {
+    let price = parseFloat(line.querySelector(".price").value) || 0;
+    let meters = parseFloat(line.querySelector(".meters").value) || 0;
+
+    let lineTotal = price * meters;
+    fabricCost += lineTotal;
+
+    line.querySelector(".line-total").innerHTML =
+      "Total: $" + lineTotal.toFixed(2);
+  });
+
+  // -------- OTHER CALCULATIONS --------
   let laborCost = hours * rate;
   let baseCost = fabricCost + laborCost + materials;
   let profit = baseCost * (marginPercent / 100);
@@ -128,6 +176,16 @@ function calculate() {
   if (finalPrice > 0) {
     realMargin = (profit / finalPrice) * 100;
   }
+
+  // -------- UPDATE TOTAL DISPLAYS --------
+  document.getElementById("fabricTotal").innerHTML =
+    "Fabric Total: $" + fabricCost.toFixed(2);
+
+  document.getElementById("laborTotal").innerHTML =
+    "Labor Total: $" + laborCost.toFixed(2);
+
+  // (Keep your receipt + warning + education logic below this)
+
 
   document.getElementById("fabricTotal").innerHTML =
     "Costo Total: $" + fabricCost.toFixed(2);
@@ -166,9 +224,7 @@ function calculate() {
     Margen de utilidad se calcula sobre el precio de venta: : <strong>${profit}</strong> / <strong>${finalPrice}</strong> = <strong>${realMargin.toFixed(2)}%</strong>.
   `;
 }
+addFabricLine();
 </script>
 </body>
-
 </html>
-
-
